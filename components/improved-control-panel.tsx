@@ -27,6 +27,7 @@ import {
   OrbitalCharacteristics,
   ORBITAL_PRESETS,
   calculateHohmannTransfer,
+  TransferResult,
   EARTH
 } from '@/lib/orbital-mechanics';
 import {
@@ -253,6 +254,8 @@ export default function ImprovedControlPanel({
   onShowTutorialsChange
 }: ImprovedControlPanelProps) {
   const [selectedPreset, setSelectedPreset] = useState<string>('');
+  const [transferCalculation, setTransferCalculation] = useState<TransferResult | null>(null);
+  const [targetAltitude, setTargetAltitude] = useState<number>(35786); // Default to GEO
 
   // Handle preset selection
   const handlePresetChange = useCallback((presetName: string) => {
@@ -410,45 +413,147 @@ export default function ImprovedControlPanel({
             </CardContent>
           </Card>
 
-          {/* Transfer Calculator */}
+          {/* Hohmann Transfer Calculator */}
           {learningLevel !== LearningLevel.BEGINNER && (
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Calculator className="w-4 h-4" />
-                  Transfer Calculator
+                  Hohmann Transfer Calculator
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-4">
+                {/* Current and Target Altitudes */}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Current Altitude:</span>
+                    <Badge variant="secondary">{(orbitalElements.semiMajorAxis - EARTH.radius).toFixed(0)} km</Badge>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <label className="text-sm font-medium">Target Altitude</label>
+                      <span className="text-sm text-muted-foreground">{targetAltitude.toFixed(0)} km</span>
+                    </div>
+                    <Slider
+                      value={[targetAltitude]}
+                      onValueChange={([value]) => setTargetAltitude(value)}
+                      min={200}
+                      max={50000}
+                      step={100}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Quick Target Buttons */}
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setTargetAltitude(800)}
+                      className="text-xs"
+                    >
+                      LEO
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setTargetAltitude(20200)}
+                      className="text-xs"
+                    >
+                      MEO
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setTargetAltitude(35786)}
+                      className="text-xs"
+                    >
+                      GEO
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Calculate Button */}
                 <Button
-                  variant="outline"
+                  variant="default"
                   size="sm"
                   className="w-full"
                   onClick={() => {
                     try {
                       const transfer = calculateHohmannTransfer(
                         orbitalElements.semiMajorAxis,
-                        EARTH.radius + 35786 // GEO altitude
+                        EARTH.radius + targetAltitude
                       );
-                      console.log('Hohmann transfer to GEO:', transfer);
-
-                      // Update orbital elements to GEO
-                      const geoElements = {
-                        ...orbitalElements,
-                        semiMajorAxis: EARTH.radius + 35786, // GEO altitude
-                        eccentricity: 0.0, // GEO is circular
-                        inclination: 0.0, // GEO is equatorial
-                        epoch: new Date()
-                      };
-                      onOrbitalElementsChange(geoElements, 'semiMajorAxis');
+                      setTransferCalculation(transfer);
                     } catch (error) {
-                      console.warn('Transfer calculation failed:', error);
+                      console.error('Transfer calculation failed:', error);
+                      setTransferCalculation(null);
                     }
                   }}
                 >
-                  <Zap className="w-4 h-4 mr-1" />
-                  Calculate to GEO
+                  <Calculator className="w-4 h-4 mr-2" />
+                  Calculate Transfer
                 </Button>
+
+                {/* Transfer Results */}
+                {transferCalculation && (
+                  <div className="space-y-3 pt-2 border-t">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>First Burn (ΔV₁):</span>
+                        <Badge variant="default">{transferCalculation.deltaV1.toFixed(1)} m/s</Badge>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Second Burn (ΔV₂):</span>
+                        <Badge variant="default">{transferCalculation.deltaV2.toFixed(1)} m/s</Badge>
+                      </div>
+                      <div className="flex justify-between text-sm font-semibold">
+                        <span>Total ΔV:</span>
+                        <Badge variant="destructive">{transferCalculation.totalDeltaV.toFixed(1)} m/s</Badge>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Transfer Time:</span>
+                        <Badge variant="secondary">{(transferCalculation.transferTime / 3600).toFixed(2)} hours</Badge>
+                      </div>
+                      {learningLevel === LearningLevel.ADVANCED && (
+                        <div className="flex justify-between text-sm">
+                          <span>Phase Angle:</span>
+                          <Badge variant="outline">{transferCalculation.phase.toFixed(1)}°</Badge>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Educational Explanation */}
+                    {cognitiveSettings.showExplanations && (
+                      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <p className="text-xs text-blue-800 dark:text-blue-200 whitespace-pre-line">
+                          {transferCalculation.explanation}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Execute Transfer Button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        const newElements = {
+                          ...orbitalElements,
+                          semiMajorAxis: EARTH.radius + targetAltitude,
+                          eccentricity: 0.0, // Assume circular target orbit
+                          epoch: new Date()
+                        };
+                        onOrbitalElementsChange(newElements, 'semiMajorAxis');
+                        setTransferCalculation(null);
+                      }}
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      Execute Transfer
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}

@@ -106,27 +106,70 @@ See `__tests__/TEST_README.md` for detailed test documentation.
 
 ```
 astrodynamics_playground/app/
-├── __tests__/              # Unit tests (C1-C5)
-│   ├── c1-circular-orbit.test.ts
-│   ├── c2-velocity-calculation.test.ts
-│   ├── c3-hohmann-transfer.test.ts
-│   ├── c4-kepler-solver.test.ts
-│   ├── c5-propagation-stability.test.ts
-│   └── TEST_README.md      # Test documentation
-├── app/                    # Next.js app router
-│   ├── layout.tsx
-│   └── page.tsx
-├── components/             # React components
-│   ├── orbital-scene.tsx   # Main 3D visualisation
-│   ├── control-panel.tsx   # Parameter controls
-│   └── ...
-├── lib/                    # Core libraries
-│   ├── orbital-mechanics.ts    # Physics calculations
-│   └── education-utils.ts      # Educational scaffolding
-├── APPENDIX_C_Evaluation_Data.md  # Validation data
-├── MSc-Project-Report.md          # Full academic report
-└── README.md                      # This file
+├── __tests__/                      # Unit tests (C1-C5)
+│   ├── c1-circular-orbit.test.ts          # Circular orbit validation
+│   ├── c2-velocity-calculation.test.ts    # Vis-viva equation tests
+│   ├── c3-hohmann-transfer.test.ts        # Transfer calculations
+│   ├── c4-kepler-solver.test.ts           # Newton-Raphson solver
+│   ├── c5-propagation-stability.test.ts   # Long-term propagation
+│   └── TEST_README.md                     # Comprehensive test documentation
+│
+├── app/                            # Next.js 14 App Router
+│   ├── layout.tsx                         # Root layout with metadata
+│   └── page.tsx                           # Main application page
+│
+├── components/                     # React UI components
+│   ├── orbital-scene.tsx                  # 3D visualisation (Three.js)
+│   ├── orbital-scene-3d.tsx               # Enhanced 3D scene
+│   ├── control-panel.tsx                  # Parameter controls
+│   ├── improved-control-panel.tsx         # Advanced controls
+│   ├── contextual-explanations.tsx        # Educational tooltips
+│   ├── tutorial-system.tsx                # Progressive disclosure
+│   ├── mission-export.tsx                 # GMAT script generation
+│   └── ...                                # Additional UI components
+│
+├── lib/                            # Core libraries
+│   ├── orbital-mechanics.ts               # Physics engine
+│   │   ├── Kepler equation solver (Newton-Raphson)
+│   │   ├── Hohmann transfer calculations
+│   │   ├── Orbit propagation
+│   │   ├── State vector conversions
+│   │   └── Orbital presets (ISS, GEO, Molniya)
+│   ├── education-utils.ts                 # Educational scaffolding
+│   └── utils.ts                           # Helper functions
+│
+├── hooks/                          # React custom hooks
+│   └── ...                                # Reusable logic
+│
+├── MSc-Project-Report.md           # Full academic dissertation
+├── README.md                       # This file
+├── LICENSE                         # MIT Licence with academic notice
+│
+├── jest.config.js                  # Jest testing configuration
+├── next.config.js                  # Next.js configuration
+├── tailwind.config.ts              # Tailwind CSS styling
+├── tsconfig.json                   # TypeScript configuration
+├── package.json                    # Dependencies and scripts
+│
+└── node_modules/                   # Dependencies (not in git)
 ```
+
+### Key Files for Academic Review
+
+**For Implementation Review:**
+- `lib/orbital-mechanics.ts` - Core physics calculations (459 lines)
+- `__tests__/*.test.ts` - 59 unit tests validating calculations
+- `components/orbital-scene.tsx` - Main visualisation component
+
+**For Academic Assessment:**
+- `MSc-Project-Report.md` - Full dissertation with methodology and evaluation
+- `APPENDIX_C_Evaluation_Data.md` - Detailed validation metrics
+- `__tests__/TEST_README.md` - Test documentation mapping to evaluation criteria
+
+**For Running the Application:**
+- `README.md` - Setup and running instructions (this file)
+- `package.json` - All dependencies and npm scripts
+- `.gitignore` - Excluded files configuration
 
 ## Technologies Used
 
