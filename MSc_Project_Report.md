@@ -10,8 +10,6 @@ Student: 23048448 | Tutor: John K. Panneerselvam
 ### Project Links {#project-links}
 
 Github: [https://github.com/sirnax/astrodyn](https://github.com/sirnax/astrodyn)  
-Published App: [https://astrodyn.vercel.app/](https://astrodyn.vercel.app/)  
-Video Demo Link: [https://youtu.be/16UskrRlM6k](https://youtu.be/16UskrRlM6k)
 
 ## *Abstract*
 
