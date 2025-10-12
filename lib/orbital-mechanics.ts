@@ -244,6 +244,113 @@ Total transfer time: ${(totalTransferTime / 3600).toFixed(1)} hours`;
 }
 
 /**
+ * Result of Kepler equation solver
+ */
+export interface KeplerSolverResult {
+  eccentricAnomaly: number; // radians
+  iterations: number;
+  error: number; // radians
+  converged: boolean;
+}
+
+/**
+ * Solve Kepler's equation using Newton-Raphson method
+ * Kepler's equation: M = E - e*sin(E)
+ * Solves for E (eccentric anomaly) given M (mean anomaly) and e (eccentricity)
+ */
+export function solveKeplerEquation(
+  meanAnomaly: number, // radians
+  eccentricity: number,
+  tolerance: number = 1e-8,
+  maxIterations: number = 50
+): KeplerSolverResult {
+  // Validate inputs
+  if (eccentricity < 0 || eccentricity >= 1) {
+    throw new Error('Eccentricity must be between 0 and 1 for elliptical orbits');
+  }
+
+  // Normalize mean anomaly to [0, 2π]
+  let M = meanAnomaly % (2 * Math.PI);
+  if (M < 0) M += 2 * Math.PI;
+
+  // Initial guess for eccentric anomaly
+  // For small eccentricity, E ≈ M
+  // For larger eccentricity, use a better initial guess
+  let E = M + eccentricity * Math.sin(M);
+
+  let iterations = 0;
+  let error = tolerance + 1;
+  let converged = false;
+
+  // Newton-Raphson iteration
+  while (iterations < maxIterations && Math.abs(error) > tolerance) {
+    // f(E) = E - e*sin(E) - M
+    const f = E - eccentricity * Math.sin(E) - M;
+
+    // f'(E) = 1 - e*cos(E)
+    const fPrime = 1 - eccentricity * Math.cos(E);
+
+    // Avoid division by zero
+    if (Math.abs(fPrime) < 1e-12) {
+      break;
+    }
+
+    // Newton-Raphson step: E_new = E - f(E)/f'(E)
+    const delta = f / fPrime;
+    E = E - delta;
+
+    error = delta;
+    iterations++;
+  }
+
+  converged = Math.abs(error) <= tolerance;
+
+  return {
+    eccentricAnomaly: E,
+    iterations,
+    error: Math.abs(error),
+    converged
+  };
+}
+
+/**
+ * Convert eccentric anomaly to true anomaly
+ */
+export function eccentricToTrueAnomaly(
+  eccentricAnomaly: number, // radians
+  eccentricity: number
+): number {
+  // tan(ν/2) = sqrt((1+e)/(1-e)) * tan(E/2)
+  const tanHalfTrue = Math.sqrt((1 + eccentricity) / (1 - eccentricity)) *
+                      Math.tan(eccentricAnomaly / 2);
+
+  let trueAnomaly = 2 * Math.atan(tanHalfTrue);
+
+  // Normalize to [0, 2π]
+  if (trueAnomaly < 0) {
+    trueAnomaly += 2 * Math.PI;
+  }
+
+  return trueAnomaly;
+}
+
+/**
+ * Convert mean anomaly to true anomaly via Kepler's equation
+ */
+export function meanToTrueAnomaly(
+  meanAnomaly: number, // radians
+  eccentricity: number
+): number {
+  const solverResult = solveKeplerEquation(meanAnomaly, eccentricity);
+
+  if (!solverResult.converged) {
+    console.warn(`Kepler solver did not converge after ${solverResult.iterations} iterations`);
+  }
+
+  return eccentricToTrueAnomaly(solverResult.eccentricAnomaly, eccentricity);
+}
+
+/**
  * Convert orbital elements to Cartesian state vector (simplified)
  */
 export function elementsToStateVector(elements: OrbitalElements): StateVector {
@@ -300,7 +407,7 @@ export function elementsToStateVector(elements: OrbitalElements): StateVector {
 }
 
 /**
- * Propagate orbital position using simplified Kepler propagation
+ * Propagate orbital position using Kepler propagation with Newton-Raphson solver
  */
 export function propagateOrbit(
   initialElements: OrbitalElements,
@@ -310,18 +417,31 @@ export function propagateOrbit(
   const results: OrbitalElements[] = [];
 
   try {
-    // For educational purposes, this is a simplified implementation
-    // Real propagation would use more sophisticated numerical integration
-
     const period = orbitalPeriod(initialElements.semiMajorAxis);
-    const meanMotion = 2 * Math.PI / period;
+    const meanMotion = 2 * Math.PI / period; // radians per second
+
+    // Convert initial true anomaly to mean anomaly
+    const initialTrueAnomalyRad = degToRad(initialElements.trueAnomaly);
+
+    // Convert true anomaly to eccentric anomaly
+    const cosNu = Math.cos(initialTrueAnomalyRad);
+    const e = initialElements.eccentricity;
+    const cosE = (e + cosNu) / (1 + e * cosNu);
+    const sinE = Math.sqrt(1 - e * e) * Math.sin(initialTrueAnomalyRad) / (1 + e * cosNu);
+    const initialEccentricAnomaly = Math.atan2(sinE, cosE);
+
+    // Convert eccentric anomaly to mean anomaly
+    const initialMeanAnomaly = initialEccentricAnomaly - e * Math.sin(initialEccentricAnomaly);
 
     for (let i = 0; i < steps; i++) {
       const currentTime = timeSeconds * i;
-      const deltaAnomaly = meanMotion * currentTime;
 
-      // Update true anomaly (simplified)
-      const newTrueAnomaly = initialElements.trueAnomaly + radToDeg(deltaAnomaly);
+      // Calculate new mean anomaly
+      const newMeanAnomaly = initialMeanAnomaly + meanMotion * currentTime;
+
+      // Use Kepler solver to get true anomaly
+      const newTrueAnomalyRad = meanToTrueAnomaly(newMeanAnomaly, initialElements.eccentricity);
+      const newTrueAnomaly = radToDeg(newTrueAnomalyRad);
 
       const newElements = {
         ...initialElements,

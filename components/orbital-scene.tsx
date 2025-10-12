@@ -21,7 +21,7 @@ interface OrbitalSceneProps {
  * 2D Canvas-based Orbital Visualization
  * More reliable than WebGL and still educational
  */
-function Canvas2DOrbit({ 
+function Canvas2DOrbit({
   orbitalElements,
   showOrbitPath,
   showLabels,
@@ -29,8 +29,9 @@ function Canvas2DOrbit({
   cognitiveSettings
 }: OrbitalSceneProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [currentTime, setCurrentTime] = useState(0);
+  const [currentTrueAnomaly, setCurrentTrueAnomaly] = useState(orbitalElements.trueAnomaly);
   const animationRef = useRef<number>(0);
+  const lastFrameTime = useRef<number>(Date.now());
 
   const drawOrbit = useCallback(() => {
     const canvas = canvasRef.current;
@@ -100,7 +101,9 @@ function Canvas2DOrbit({
 
       // Draw current spacecraft position
       try {
-        const spacecraftState = elementsToStateVector(orbitalElements);
+        // Use current animated true anomaly instead of static orbital elements
+        const animatedElements = { ...orbitalElements, trueAnomaly: currentTrueAnomaly };
+        const spacecraftState = elementsToStateVector(animatedElements);
         if (spacecraftState?.position) {
           const spacecraftX = centerX + spacecraftState.position[0] * scale;
           const spacecraftY = centerY + spacecraftState.position[1] * scale;
@@ -159,18 +162,58 @@ function Canvas2DOrbit({
     } catch (error) {
       console.warn('Canvas drawing error:', error);
     }
-  }, [orbitalElements, showOrbitPath, showLabels, currentTime, cognitiveSettings]);
+  }, [orbitalElements, showOrbitPath, showLabels, currentTrueAnomaly, cognitiveSettings]);
 
-  // Animation loop
+  // Animation loop - updates true anomaly based on orbital velocity (Kepler's 2nd law)
   useEffect(() => {
     const animate = () => {
       if (!cognitiveSettings.reducedMotion) {
-        setCurrentTime(prev => prev + animationSpeed * 0.016); // Simulate 60fps delta
+        const now = Date.now();
+        const deltaTime = (now - lastFrameTime.current) / 1000; // Convert to seconds
+        lastFrameTime.current = now;
+
+        setCurrentTrueAnomaly(prev => {
+          // Use the actual state vector to get the correct velocity
+          const animatedElements = { ...orbitalElements, trueAnomaly: prev };
+          const state = elementsToStateVector(animatedElements);
+
+          if (!state) return prev;
+
+          // Calculate angular velocity using angular momentum (tangential component)
+          // h = r × v (specific angular momentum)
+          // ω = h / r² (angular velocity from tangential component only)
+          // This is correct for elliptical orbits where velocity has radial & tangential components
+
+          const r_vec = state.position;
+          const v_vec = state.velocity;
+
+          // Cross product: h = r × v
+          const h_x = r_vec[1] * v_vec[2] - r_vec[2] * v_vec[1];
+          const h_y = r_vec[2] * v_vec[0] - r_vec[0] * v_vec[2];
+          const h_z = r_vec[0] * v_vec[1] - r_vec[1] * v_vec[0];
+
+          // Magnitude of angular momentum
+          const h = Math.sqrt(h_x**2 + h_y**2 + h_z**2);
+
+          // Radius magnitude
+          const r = Math.sqrt(r_vec[0]**2 + r_vec[1]**2 + r_vec[2]**2);
+
+          // Angular velocity: ω = h / r² (using tangential component)
+          const angularVelocity = h / (r * r); // rad/s
+
+          // Convert to degrees and apply animation speed multiplier
+          const dTheta = angularVelocity * (180 / Math.PI) * deltaTime * animationSpeed * 10;
+
+          // Update true anomaly, wrapping at 360 degrees
+          // Note: Subtracting to match the correct velocity-to-animation relationship
+          return (prev - dTheta + 360) % 360;
+        });
       }
       drawOrbit();
       animationRef.current = requestAnimationFrame(animate);
     };
 
+    lastFrameTime.current = Date.now();
     animationRef.current = requestAnimationFrame(animate);
 
     return () => {
@@ -178,7 +221,12 @@ function Canvas2DOrbit({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [drawOrbit, animationSpeed, cognitiveSettings.reducedMotion]);
+  }, [drawOrbit, animationSpeed, cognitiveSettings.reducedMotion, orbitalElements]);
+
+  // Sync animation when orbital elements change externally
+  useEffect(() => {
+    setCurrentTrueAnomaly(orbitalElements.trueAnomaly);
+  }, [orbitalElements.trueAnomaly]);
 
   // Handle resize
   useEffect(() => {
