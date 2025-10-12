@@ -1,0 +1,51 @@
+MIT Licence
+
+Copyright (c) 2025 Nathan Lord
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicence, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+ACADEMIC USE NOTICE
+
+This software was developed as part of an MSc dissertation project. If you use
+this work in academic research or publications, please provide appropriate
+attribution by citing the accompanying dissertation report (MSc-Project-Report.md).
+
+The orbital mechanics calculations and educational design principles implemented
+in this software are based on published academic work and textbooks. Users are
+encouraged to consult the original sources for deeper understanding:
+
+- Curtis, H. D. (2013). Orbital Mechanics for Engineering Students (3rd ed.)
+- Mayer, R. E., & Moreno, R. (2003). Nine Ways to Reduce Cognitive Load in
+  Multimedia Learning
+- DuPaul, G. J., & Stoner, G. (2014). ADHD in the Schools: Assessment and
+  Intervention Strategies
+
+DISCLAIMER
+
+This software is designed for educational purposes. Whilst the orbital mechanics
+calculations are validated against theoretical predictions and reference
+implementations, this is NOT intended for mission-critical applications or
+operational spacecraft trajectory planning. The software implements simplified
+two-body dynamics and does not include perturbations, relativistic effects, or
+other factors required for high-precision orbital determination.
+
+Always validate results with professional-grade astrodynamics software (e.g.,
+GMAT, STK) before using for any practical applications.
