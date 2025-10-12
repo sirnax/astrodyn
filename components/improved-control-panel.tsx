@@ -84,8 +84,24 @@ function OrbitalParameters({
       case 'semiMajorAxis':
         newElements.semiMajorAxis = EARTH.radius + value; // Convert altitude to SMA
         break;
-      default:
-        newElements[parameter] = value;
+      case 'eccentricity':
+        newElements.eccentricity = value;
+        break;
+      case 'inclination':
+        newElements.inclination = value;
+        break;
+      case 'raan':
+        newElements.raan = value;
+        break;
+      case 'argumentOfPeriapsis':
+        newElements.argumentOfPeriapsis = value;
+        break;
+      case 'trueAnomaly':
+        newElements.trueAnomaly = value;
+        break;
+      case 'epoch':
+        // Skip epoch updates from slider
+        return;
     }
 
     onOrbitalElementsChange(newElements, parameter);
