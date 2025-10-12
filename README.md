@@ -6,7 +6,7 @@ An interactive educational web application for learning orbital mechanics, desig
 
 This project was developed as part of an MSc dissertation investigating educational technology approaches to teaching orbital mechanics. The system implements progressive disclosure, multimedia learning principles, and accessibility features to support diverse learners including neurodivergent students.
 
-Full academic documentation is available in `MSc-Project-Report.md`.
+Full academic documentation is available in `MSc_Project_Report.md`.
 
 ## Overview
 
@@ -141,7 +141,7 @@ astrodynamics_playground/app/
 ├── hooks/                          # React custom hooks
 │   └── ...                                # Reusable logic
 │
-├── MSc-Project-Report.md           # Full academic dissertation
+├── MSc_Project_Report.md          # Full academic dissertation
 ├── README.md                       # This file
 ├── LICENSE                         # MIT Licence with academic notice
 │

@@ -1,6 +1,6 @@
 # Unit Test Documentation
 
-This directory contains unit tests for the astrodynamics playground application, derived from the evaluation data in `APPENDIX_C_Evaluation_Data.md`.
+This directory contains unit tests for the astrodynamics playground application.
 
 ## Test Coverage Summary
 
