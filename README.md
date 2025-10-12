@@ -171,27 +171,7 @@ This project is suitable for:
 
 If you use this work in academic research, please cite the accompanying MSc dissertation (see `MSc-Project-Report.md`).
 
-## Development
 
-### Adding New Features
-
-1. Implement functionality in `lib/orbital-mechanics.ts`
-2. Add corresponding unit tests in `__tests__/`
-3. Update components as needed
-4. Run tests to ensure validation
-5. Update documentation
-
-### Code Quality
-
-```bash
-# Type checking
-npm run build
-
-# Linting
-npm run lint
-
-# All checks
-npm run test && npm run build
 ```
 
 ## Deployment
