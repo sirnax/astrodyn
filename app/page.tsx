@@ -4,6 +4,10 @@ import React, { useState, useCallback, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
+import { ImperativePanelHandle } from 'react-resizable-panels';
+import { Menu } from 'lucide-react';
 import ImprovedControlPanel from '@/components/improved-control-panel';
 import TutorialSystem from '@/components/tutorial-system';
 import ContextualExplanations from '@/components/contextual-explanations';
@@ -53,6 +57,20 @@ export default function AstrodynamicsPlayground() {
   const [lastChangedParameter, setLastChangedParameter] = useState<string>();
   const [highlightedElement, setHighlightedElement] = useState<string | null>(null);
   const [showTutorials, setShowTutorials] = useState(true);
+
+  // Sidebar control
+  const sidebarRef = useRef<ImperativePanelHandle>(null);
+
+  const toggleSidebar = useCallback(() => {
+    const sidebar = sidebarRef.current;
+    if (sidebar) {
+      if (sidebar.isCollapsed()) {
+        sidebar.expand();
+      } else {
+        sidebar.collapse();
+      }
+    }
+  }, []);
 
   // Initialize accessibility settings from system preferences
   React.useEffect(() => {
@@ -245,75 +263,94 @@ export default function AstrodynamicsPlayground() {
   }, [elements]);
 
   return (
-    <div className={`min-h-screen max-h-screen flex overflow-hidden ${cognitiveSettings.highContrast ? 'contrast-125' : ''} ${cognitiveSettings.largeText ? 'text-lg' : ''}`}>
-      {/* Control Panel */}
-      <ImprovedControlPanel
-        orbitalElements={elements}
-        onOrbitalElementsChange={handleElementsChange}
-        characteristics={characteristics}
-        animationSpeed={animationSpeed}
-        onAnimationSpeedChange={setAnimationSpeed}
-        isPlaying={isPlaying}
-        onPlayPause={handlePlayPause}
-        onReset={handleReset}
-        showOrbitPath={showOrbitPath}
-        onShowOrbitPathChange={setShowOrbitPath}
-        showLabels={showLabels}
-        onShowLabelsChange={setShowLabels}
-        cameraFocus={cameraFocus}
-        onCameraFocusChange={setCameraFocus}
-        cognitiveSettings={cognitiveSettings}
-        onCognitiveSettingsChange={setCognitiveSettings}
-        learningLevel={learningLevel}
-        onLearningLevelChange={setLearningLevel}
-        showTutorials={showTutorials}
-        onShowTutorialsChange={setShowTutorials}
-      />
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col relative min-w-0 overflow-hidden">
-        {/* Header */}
-        <header className="bg-background border-b border-border p-4" role="banner">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">
-                Astrodynamics Playground
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Interactive orbital mechanics visualisation and learning platform
-              </p>
-            </div>
-            <div className="flex items-center gap-2" role="status" aria-label="Application status">
-              <Badge variant="outline" aria-label={`Current learning level: ${learningLevel}`}>
-                Level: {learningLevel.charAt(0).toUpperCase() + learningLevel.slice(1)}
-              </Badge>
-              <Badge
-                variant={characteristics.altitude > 0 ? "default" : "destructive"}
-                aria-label={characteristics.altitude > 0 ? "Orbital parameters are valid" : "Orbital parameters are invalid"}
-              >
-                {characteristics.altitude > 0 ? "Valid Orbit" : "Invalid Parameters"}
-              </Badge>
-            </div>
-          </div>
-        </header>
-
-        {/* 3D Visualization */}
-        <main className="flex-1 relative overflow-hidden" role="main" aria-label="3D orbital mechanics visualisation">
-          <OrbitalScene3D
-            elements={elements}
-            cognitiveSettings={cognitiveSettings}
+    <div className={`min-h-screen max-h-screen flex flex-col overflow-hidden ${cognitiveSettings.highContrast ? 'contrast-125' : ''} ${cognitiveSettings.largeText ? 'text-lg' : ''}`}>
+      <ResizablePanelGroup direction="horizontal" className="h-full w-full">
+        <ResizablePanel
+          ref={sidebarRef}
+          defaultSize={25}
+          minSize={20}
+          maxSize={40}
+          collapsible={true}
+          collapsedSize={0}
+          className="bg-background"
+        >
+          {/* Control Panel */}
+          <ImprovedControlPanel
+            orbitalElements={elements}
+            onOrbitalElementsChange={handleElementsChange}
+            characteristics={characteristics}
+            animationSpeed={animationSpeed}
+            onAnimationSpeedChange={setAnimationSpeed}
+            isPlaying={isPlaying}
+            onPlayPause={handlePlayPause}
+            onReset={handleReset}
             showOrbitPath={showOrbitPath}
-            showLabels={!cognitiveSettings.simplifiedUI}
-            animationSpeed={cognitiveSettings.enableAnimations ? animationSpeed : 0}
+            onShowOrbitPathChange={setShowOrbitPath}
+            showLabels={showLabels}
+            onShowLabelsChange={setShowLabels}
             cameraFocus={cameraFocus}
-            onSpacecraftClick={handleSpacecraftClick}
-            onTrueAnomalyChange={handleTrueAnomalyChange}
+            onCameraFocusChange={setCameraFocus}
+            cognitiveSettings={cognitiveSettings}
+            onCognitiveSettingsChange={setCognitiveSettings}
+            learningLevel={learningLevel}
+            onLearningLevelChange={setLearningLevel}
+            showTutorials={showTutorials}
+            onShowTutorialsChange={setShowTutorials}
           />
+        </ResizablePanel>
+
+        <ResizableHandle withHandle />
+
+        <ResizablePanel defaultSize={75}>
+          {/* Main Content */}
+          <div className="h-full flex flex-col relative min-w-0 overflow-hidden">
+            {/* Header */}
+            <header className="bg-background border-b border-border p-4" role="banner">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <Button variant="ghost" size="icon" onClick={toggleSidebar} aria-label="Toggle sidebar">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                  <div>
+                    <h1 className="text-2xl font-bold text-foreground">
+                      Astrodynamics Playground
+                    </h1>
+                    <p className="text-sm text-muted-foreground hidden md:block">
+                      Interactive orbital mechanics visualisation and learning platform
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2" role="status" aria-label="Application status">
+                  <Badge variant="outline" aria-label={`Current learning level: ${learningLevel}`} className="hidden sm:inline-flex">
+                    Level: {learningLevel.charAt(0).toUpperCase() + learningLevel.slice(1)}
+                  </Badge>
+                  <Badge
+                    variant={characteristics.altitude > 0 ? "default" : "destructive"}
+                    aria-label={characteristics.altitude > 0 ? "Orbital parameters are valid" : "Orbital parameters are invalid"}
+                  >
+                    {characteristics.altitude > 0 ? "Valid Orbit" : "Invalid Parameters"}
+                  </Badge>
+                </div>
+              </div>
+            </header>
+
+            {/* 3D Visualization */}
+            <main className="flex-1 relative overflow-hidden" role="main" aria-label="3D orbital mechanics visualisation">
+              <OrbitalScene3D
+                elements={elements}
+                cognitiveSettings={cognitiveSettings}
+                showOrbitPath={showOrbitPath}
+                showLabels={!cognitiveSettings.simplifiedUI}
+                animationSpeed={cognitiveSettings.enableAnimations ? animationSpeed : 0}
+                cameraFocus={cameraFocus}
+                onSpacecraftClick={handleSpacecraftClick}
+                onTrueAnomalyChange={handleTrueAnomalyChange}
+              />
 
           {/* Orbital Characteristics Display - top right */}
           {!cognitiveSettings.simplifiedUI && (
             <Card
-              className="absolute top-4 right-4 w-64 bg-background/95 backdrop-blur-sm shadow-lg"
+              className="absolute top-4 right-4 w-64 md:w-64 sm:w-56 bg-background/95 backdrop-blur-sm shadow-lg max-h-[calc(100vh-8rem)] overflow-y-auto"
               role="region"
               aria-label="Current orbital characteristics"
             >
@@ -439,6 +476,8 @@ export default function AstrodynamicsPlayground() {
           />
         </main>
       </div>
+      </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 }
