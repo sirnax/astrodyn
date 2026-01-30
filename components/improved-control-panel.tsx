@@ -278,7 +278,7 @@ export default function ImprovedControlPanel({
   }, [cognitiveSettings, onCognitiveSettingsChange]);
 
   return (
-    <div className="w-80 min-w-80 max-w-80 h-screen bg-background border-r border-border overflow-y-auto overflow-x-hidden flex-shrink-0">
+    <div className="w-full h-full bg-background border-r border-border overflow-y-auto overflow-x-hidden">
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-4">
