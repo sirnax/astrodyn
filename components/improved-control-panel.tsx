@@ -37,6 +37,7 @@ import {
   generateContextualExplanation,
   ProgressiveDisclosure
 } from '@/lib/education-utils';
+import { ThemeSelector } from '@/components/theme-selector';
 
 interface ImprovedControlPanelProps {
   orbitalElements: OrbitalElements;
@@ -629,6 +630,7 @@ export default function ImprovedControlPanel({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <ThemeSelector />
               {Object.entries({
                 highContrast: 'High Contrast',
                 reducedMotion: 'Reduced Motion',
